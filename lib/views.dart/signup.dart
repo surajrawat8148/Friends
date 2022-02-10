@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:friends_app/decorations/custom_painter.dart';
 import 'package:friends_app/decorations/widget.dart';
 import 'package:friends_app/services/database.dart';
+import 'package:friends_app/views.dart/list.dart';
 
 class SignUp extends StatefulWidget {
   late final Function toggle;
@@ -18,15 +19,14 @@ class _SignUpState extends State<SignUp> {
   TextEditingController emailTextEditingController = TextEditingController();
   TextEditingController passwordTextEditingController = TextEditingController();
   TextEditingController mobileTextEditingController = TextEditingController();
-
-  SignMeUp() {}
+  MyDatabase myDB = MyDatabase();
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // LogoPainter(),
+          const LogoPainter(),
           Container(
             height: MediaQuery.of(context).size.height - 130,
             alignment: Alignment.bottomCenter,
@@ -47,14 +47,6 @@ class _SignUpState extends State<SignUp> {
                                 : null;
                           },
                           decoration: textFieldInputDecoration("First Name"),
-                        ),
-                        TextFormField(
-                          validator: (val) {
-                            return val!.isEmpty || val.length < 4
-                                ? "Please provide a valid Last Name"
-                                : null;
-                          },
-                          decoration: textFieldInputDecoration("Last Name"),
                         ),
                         TextFormField(
                           controller: emailTextEditingController,
@@ -93,8 +85,7 @@ class _SignUpState extends State<SignUp> {
                     height: 20,
                   ),
                   GestureDetector(
-                    onTap: () {
-                      MyDatabase myDB = MyDatabase();
+                    onTap: () async {
                       myDB.addUsers(UsersCompanion(
                           name: drift.Value(nameTextEditingController.text),
                           email: drift.Value(emailTextEditingController.text),
@@ -102,6 +93,22 @@ class _SignUpState extends State<SignUp> {
                               drift.Value(passwordTextEditingController.text),
                           mobile:
                               drift.Value(mobileTextEditingController.text)));
+                      List<User> userList = await myDB.getUsers;
+                      for (int i = 0; i < userList.length; i++) {
+                        if (userList[i].mobile ==
+                            mobileTextEditingController.text) {
+                          if (userList[i].password ==
+                              passwordTextEditingController.text) {
+                            List<Friend> myList = [];
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) => List1(
+                                        userlist: myList,
+                                        userId: userList[i].id)));
+                          }
+                        }
+                      }
                     },
                     child: Container(
                       alignment: Alignment.center,
@@ -122,7 +129,7 @@ class _SignUpState extends State<SignUp> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Already have account? ",
                       ),
                       GestureDetector(

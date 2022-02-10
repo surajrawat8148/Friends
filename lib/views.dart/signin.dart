@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:friends_app/decorations/custom_painter.dart';
 import 'package:friends_app/decorations/widget.dart';
+import 'package:friends_app/services/database.dart';
+import 'package:friends_app/views.dart/list.dart';
 
 class SignIn extends StatefulWidget {
   final Function toggle;
@@ -12,7 +14,8 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn> {
   final formKeys = GlobalKey<FormState>();
-  TextEditingController emailTextEditingController = TextEditingController();
+  MyDatabase myDB = MyDatabase();
+  TextEditingController mobileTextEditingController = TextEditingController();
   TextEditingController passwordTextEditingController = TextEditingController();
 
   @override
@@ -20,7 +23,7 @@ class _SignInState extends State<SignIn> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // LogoPainter(),
+          const LogoPainter(),
           Container(
             height: MediaQuery.of(context).size.height - 130,
             alignment: Alignment.bottomCenter,
@@ -34,6 +37,7 @@ class _SignInState extends State<SignIn> {
                     child: Column(
                       children: [
                         TextFormField(
+                          controller: mobileTextEditingController,
                           validator: (val) {
                             return val!.isEmpty || val.length < 4
                                 ? "Please provide a valid Username"
@@ -42,6 +46,7 @@ class _SignInState extends State<SignIn> {
                           decoration: textFieldInputDecoration("Mobile Number"),
                         ),
                         TextFormField(
+                          controller: passwordTextEditingController,
                           obscureText: true,
                           validator: (val) {
                             return RegExp(r'^.{6,}$').hasMatch(val!)
@@ -57,9 +62,31 @@ class _SignInState extends State<SignIn> {
                     height: 20,
                   ),
                   GestureDetector(
-                    onTap: () {
+                    onTap: () async {
                       // ignore: todo
                       //TODO
+                      List<User> userList = await myDB.getUsers;
+
+                      print(userList);
+                      for (int i = 0; i < userList.length; i++) {
+                        if (userList[i].mobile ==
+                            mobileTextEditingController.text) {
+                          if (userList[i].password ==
+                              passwordTextEditingController.text) {
+                            List<Friend> myList =
+                                await myDB.getFriends(userList[i].id);
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) => List1(
+                                        userlist: myList,
+                                        userId: userList[i].id)));
+                          } else {
+                            //password not match
+                            break;
+                          }
+                        }
+                      }
                     },
                     child: Container(
                       alignment: Alignment.center,
